@@ -46,3 +46,28 @@ exporter.addFrame(renderer.domElement);
 
 </script>
 ```
+## Properties
+
+## renderer
+Three.js renderer for use in addRenderFrame
+
+## scene
+scene to render
+
+## camera
+camera to use for render
+
+
+## Methods
+
+### addRenderFrame
+Will render using scene and camera then add the frame
+
+### addFrame
+Add a frame from a canvas element
+
+### compile
+output a video WebM blob
+
+### createObjectURL
+create a video src URL for playing and exporting video
