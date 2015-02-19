@@ -73,5 +73,7 @@ output a video WebM blob
 create a video src URL for playing and exporting video
 
 ## Live Demos
+
 In Action > http://chuckfairy.com/THREE.WebMExporter/examples/webgl.html
+
 Video > http://chuckfairy.com/THREE.WebMExporter/videos/webgl.webm
