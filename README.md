@@ -1,5 +1,5 @@
 # THREE.WebMExporter
-Using toDataURL for the Three.js domElement, compile a frame array of Webp images into a WebM video. It is based on [Whammy](https://github.com/antimatter15/whammy).
+Using toDataURL for the Three.js domElement, compile a frame array of Webp images into a WebM video for use in [three.js](http://threejs.org). It is based on [Whammy](https://github.com/antimatter15/whammy). Thank you mrdoob, AlteredQualia, and all those who made this happen.
 
 ## How to use
 
