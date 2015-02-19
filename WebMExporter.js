@@ -99,7 +99,7 @@ THREE.WebMExporter.prototype = {
         }
 
         return {
-            duration: this.duration,
+            duration: duration,
             width: width,
             height: height
         };
@@ -131,7 +131,7 @@ THREE.WebMExporter.prototype = {
         var u = window.URL || window.webkitURL;
 
         return u.createObjectURL(blob);
-        
+
     },
 
 

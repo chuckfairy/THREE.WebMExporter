@@ -48,13 +48,13 @@ exporter.addFrame(renderer.domElement);
 ```
 ## Properties
 
-## renderer
+### renderer
 Three.js renderer for use in addRenderFrame
 
-## scene
+### scene
 scene to render
 
-## camera
+### camera
 camera to use for render
 
 
