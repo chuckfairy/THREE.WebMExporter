@@ -32,6 +32,7 @@ THREE.WebMExporter.prototype = {
 
     constructor: THREE.WebMExporter,
 
+    REVISION: 1,
 
     //Frame array to compile
 
@@ -43,7 +44,7 @@ THREE.WebMExporter.prototype = {
 
         this.renderer.render(this.scene, this.camera);
 
-        frameArray.push(this.renderer);
+        this.addFrame(this.renderer.domElement);
 
     },
 
@@ -98,7 +99,7 @@ THREE.WebMExporter.prototype = {
         }
 
         return {
-            duration: duration,
+            duration: this.duration,
             width: width,
             height: height
         };
@@ -109,18 +110,28 @@ THREE.WebMExporter.prototype = {
 
     compile: function(outputAsArray) {
 
-        var parseRIFF = this.parseRIFF;
+        var t = this;
+        var parseRIFF = t.parseRIFF.bind(t);
+        var parseWebP = t.parseWebP.bind(t);
 
-        var parseWebP = this.parseWebP;
-
-        var webp = this.frames.map(function(frame) {
+        var webp = t.frames.map(function(frame) {
             var output = parseWebP(parseRIFF(atob(frame.image.slice(23))));
-            webp.duration = frame.duration;
+            output.duration = t.duration;
             return output;
         });
 
-        return new this.toWebM(webp, outputAsArray);
+        return this.toWebM(webp, outputAsArray);
 
+    },
+
+    //Polyfill createObjectURL
+
+    createObjectURL: function(blob) {
+
+        var u = window.URL || window.webkitURL;
+
+        return u.createObjectURL(blob);
+        
     },
 
 
@@ -302,6 +313,7 @@ THREE.WebMExporter.prototype = {
 
         var offset = 0;
         var chunks = {};
+        var parseRIFF = this.parseRIFF.bind(this);
         var sl = string.length;
 
         while (offset < sl) {
@@ -319,7 +331,7 @@ THREE.WebMExporter.prototype = {
 
             if (id == 'RIFF' || id == 'LIST') {
 
-                chunks[id].push(this.parseRIFF(data));
+                chunks[id].push(parseRIFF(data));
 
             } else {
 
@@ -429,9 +441,10 @@ THREE.WebMExporter.prototype = {
         var ebml = [ ];
         var jl = json.length;
 
-        var generateEBML = this.generateEBML;
+        var generateEBML = this.generateEBML.bind(this);
         var bitsToBuffer = this.bitsToBuffer;
         var strToBuffer = this.strToBuffer;
+        var numToBuffer = this.numToBuffer;
 
         for( var i = 0; i < jl; i++ ) {
 
@@ -516,13 +529,15 @@ THREE.WebMExporter.prototype = {
 
     toWebM: function ( frames, outputAsArray ) {
 
-        var info = checkFrames(frames);
+        var t = this;
+        var info = t.checkFrames(frames);
+        var makeSimpleBlock = t.makeSimpleBlock.bind(t);
 
         //max duration by cluster in milliseconds
 
         var CLUSTER_MAX_DURATION = 30000;
 
-        var EBML = this.EBML(info.width, info.height, info.duration);
+        var EBML = t.EBML(info.width, info.height, info.duration);
 
         //Generate clusters (max duration)
         var frameNumber = 0;
@@ -549,7 +564,7 @@ THREE.WebMExporter.prototype = {
                             "id": 0xe7 // Timecode
                         }
                     ].concat(clusterFrames.map(function(webp){
-                        var block = this.makeSimpleBlock({
+                        var block = makeSimpleBlock({
                             discardable: 0,
                             frame: webp.data.slice(4),
                             invisible: 0,

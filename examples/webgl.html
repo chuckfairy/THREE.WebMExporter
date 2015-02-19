@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Three.js WebGL WebMExporter</title>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+<style>
+
+html, body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+#video {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 1;
+}
+
+#download, #info {
+    background: rgb(200,200,200);
+    text-decoration: none;
+    padding: 5px;
+    font-size: 14px;
+    color: rgb(100, 0, 0);
+    position: absolute;
+    z-index: 3;
+}
+
+#download {
+    top: 5px;
+    right: 5px;
+    display: none;
+}
+
+#info {
+    top: 5px;
+    left: 5px;
+}
+
+#videoInfo {
+    width: 70%;
+    max-width: 30em;
+    margin: 30px auto;
+    background: rgb(200,200,200);
+    padding: 5px;
+    box-shadow: 5px 5px 0 0 rgb(0,0,0);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<video id="video" autoplay loop></video>
+
+<a id="download" download="webgl.webm">Download Video</a>
+<a id="info" target="_blank" href="https://github.com/chuckfairy/THREE.WebMExporter">Three.js WebMExporter by Chuck Fairy</a>
+
+<div id="videoInfo">
+    <h2>Creating Video</h2>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="../WebMExporter.js"></script>
+
+<script>
+
+var scene, camera, renderer;
+
+var geometry, material, mesh, light;
+
+var exporter, output;
+
+var video = document.getElementById("video"),
+    download = document.getElementById("download"),
+    videoInfo = document.getElementById("videoInfo");
+
+
+init();
+initWebM();
+//animate();
+
+function init() {
+
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+    camera.position.set(0, 50, 500);
+
+    //Create box
+    geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    material = new THREE.MeshLambertMaterial( { color: 0xff0000, shading: THREE.FlatShading });
+
+    mesh = new THREE.Mesh( geometry, material );
+    scene.add( mesh );
+
+    //Create Light
+    light = new THREE.PointLight( 0xff0000, 1, 400 );
+    light.position.set(20, 50, 300);
+    scene.add(light);
+
+    //Create renderer make sure preserveDrawingBuffer is set to true
+    renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true, antialias: true });
+    renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
+//WebM compile
+function initWebM() {
+
+    //Exporter construct
+    exporter = new THREE.WebMExporter({
+
+        //Render options
+        renderer: renderer,
+        scene: scene,
+        camera: camera,
+
+        //speed in frames per second
+        speed: 60,
+
+        //Quality 1-100
+        quality: 100
+
+    });
+
+    var numberOfFrames = 200;
+
+    for(var i = 0; i < numberOfFrames; i++) {
+
+        animate();
+
+        exporter.addRenderFrame();
+
+    }
+
+    output = exporter.compile();
+    var url = exporter.createObjectURL(output);
+
+    video.src = url;
+    download.href = url;
+    download.style.display = "inline-block";
+    videoInfo.style.display = "none";
+
+}
+
+
+function animate() {
+
+    mesh.rotation.x += 0.01;
+    mesh.rotation.y += 0.02;
+
+}
+
+</script>
+</body>
+</html>
