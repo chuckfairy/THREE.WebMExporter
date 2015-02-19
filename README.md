@@ -7,8 +7,8 @@ Using toDataURL for the Three.js domElement, compile a frame array of Webp image
 
 <script>
 
-//For webgl use the preserverDrawingBuffer flag must be true
-var renderer = new THREE.WebGLRenderer({ preserverDrawingBuffer: true });
+//For webgl use the preserveDrawingBuffer flag must be true
+var renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 
 //Exporter construct
 var exporter = new THREE.WebMExporter({
