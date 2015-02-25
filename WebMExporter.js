@@ -13,12 +13,12 @@ THREE.WebMExporter = function( options ) {
 
     this.duration = 1000 / this.speed;
 
-    this.quality = options.quality || 100;
+    this.quality = (options.quality) ? (options.quality - 0.0) / 100 : 1;
 
 
     //Renderering and scene options
 
-    //Renderer must have set preserveDrawingBuffer = true
+    //WebGL Renderer must have set preserveDrawingBuffer = true
 
     this.renderer = options.renderer;
 
@@ -32,37 +32,36 @@ THREE.WebMExporter.prototype = {
 
     constructor: THREE.WebMExporter,
 
-    REVISION: 1,
+    REVISION: 2,
+
 
     //Frame array to compile
 
     frames: [ ],
 
+
     //add a render frame from set render scene
 
-    addRenderFrame: function() {
+    addRenderFrame: function(duration) {
 
         this.renderer.render(this.scene, this.camera);
 
-        this.addFrame(this.renderer.domElement);
+        this.addFrame(this.renderer.domElement, duration);
 
     },
 
+
     //add a canvas outputted dataUrl
 
-    addFrame: function(frame, duration) {
+    addFrame: function( frame, duration ) {
 
-        //CanvasRenderingContext2D
-        if('canvas' in frame){
-            frame = frame.canvas;
-        }
-
+        //retrieve dataURL from canvas
         if('toDataURL' in frame){
             frame = frame.toDataURL('image/webp', this.quality);
         }
 
         else if(typeof frame != "string"){
-            throw "frame must be a a CanvasElement, a CanvasRenderingContext2D or a DataURI formatted string";
+            throw "frame must be a a CanvasElement or a DataURI formatted string";
         }
 
         if (!(/^data:image\/webp;base64,/ig).test(frame)) {
@@ -71,31 +70,56 @@ THREE.WebMExporter.prototype = {
 
         this.frames.push({
             image: frame,
-            duration: this.duration
+            duration: (duration || this.duration)
         });
 
     },
 
+
+    //Set quality of images 1-100
+
+    setQuality: function( quality ) {
+
+        this.quality = (quality - 0.0) / 100;
+
+    },
+
+
+    //Set speed in fps
+
+    setSpeed: function( speed ) {
+
+        this.speed = (speed - 0.0);
+        this.duration = 1000 / this.speed;
+
+    },
+
+    //Check frames and output info object
+
     checkFrames: function( frames ) {
+
         var width = frames[0].width,
             height = frames[0].height,
-            duration = frames[0].duration;
+            duration = frames[0].duration,
+            frameLength = frames.length;
 
-        for(var i = 1; i < frames.length; i++){
+        for(var i = 1; i < frameLength; i++) {
 
-            if(frames[i].width != width) {
+            var frame = frames[i];
+
+            if(frame.width != width) {
                 throw "Frame " + (i + 1) + " has a different width";
             }
 
-            if(frames[i].height != height) {
+            if(frame.height != height) {
                 throw "Frame " + (i + 1) + " has a different height";
             }
 
-            if(frames[i].duration < 0 || frames[i].duration > 0x7fff) {
+            if(frame.duration < 0 || frame.duration > 0x7fff) {
                 throw "Frame " + (i + 1) + " has a weird duration (must be between 0 and 32767)";
             }
 
-            duration += frames[i].duration;
+            duration += frame.duration;
         }
 
         return {
@@ -111,18 +135,22 @@ THREE.WebMExporter.prototype = {
     compile: function(outputAsArray) {
 
         var t = this;
-        var parseRIFF = t.parseRIFF.bind(t);
-        var parseWebP = t.parseWebP.bind(t);
+        var frameLength = t.frames.length;
+        var webp = [];
 
-        var webp = t.frames.map(function(frame) {
-            var output = parseWebP(parseRIFF(atob(frame.image.slice(23))));
-            output.duration = t.duration;
-            return output;
-        });
+        for( var i = 0; i < frameLength; i++ ) {
+
+            var frame = t.frames[i];
+            var output = t.parseWebP(t.parseRIFF(atob(frame.image.slice(23))));
+            output.duration = frame.duration;
+            webp[i] = output;
+
+        }
 
         return this.toWebM(webp, outputAsArray);
 
     },
+
 
     //Polyfill createObjectURL
 
@@ -135,28 +163,7 @@ THREE.WebMExporter.prototype = {
     },
 
 
-    //Get a data URL from a renderer
-
-    getDataUrl: function(renderer) {
-
-        var dataUrl = "";
-
-        if(renderer) {
-
-            return dataUrl;
-
-        }
-
-
-        if(!this.renderer) {
-
-            throw new Error("Renderer not set");
-
-        }
-
-        return dataUrl;
-
-    },
+    //EBML encoding function
 
     EBML:  function(width, height, duration) {
 
@@ -348,6 +355,7 @@ THREE.WebMExporter.prototype = {
     //Parse WebP image into object
 
     parseWebP: function(riff) {
+
         var VP8 = riff.RIFF[0].WEBP[0];
 
         var frame_start = VP8.indexOf('\x9d\x01\x2a'); //A VP8 keyframe starts with the 0x9d012a header
@@ -402,10 +410,10 @@ THREE.WebMExporter.prototype = {
     strToBuffer: function(str){
 
         var arr = new Uint8Array(str.length);
+        var strlen = str.length;
+        for( var i = 0; i < strlen; i++ ){
 
-        for( var i = 0; i < str.length; i++ ){
-
-            arr[i] = str.charCodeAt(i)
+            arr[i] = str.charCodeAt(i);
 
         }
 
@@ -419,13 +427,13 @@ THREE.WebMExporter.prototype = {
     bitsToBuffer: function (bits){
 
         var data = [ ];
+        var bitlen = bits.length;
+
         var pad = (bits.length % 8) ?
-            (new Array(1 + 8 - (bits.length % 8))).join('0') :
-            '';
+            (new Array(1 + 8 - (bitlen % 8))).join('0') : '';
 
         bits = pad + bits;
-        var bl = bits.length;
-        for(var i = 0; i < bl; i+= 8){
+        for(var i = 0; i < bitlen; i+= 8){
             data.push(parseInt(bits.substr(i,8),2))
         }
 
@@ -503,7 +511,8 @@ THREE.WebMExporter.prototype = {
 
         if(outBuffer == null) { outBuffer = [ ]; }
 
-        for(var i = 0; i < arr.length; i++) {
+        var arrlen = arr.length;
+        for(var i = 0; i < arrlen; i++) {
 
             //an array
             if(typeof arr[i] == 'object') {

@@ -3,7 +3,7 @@
 
 <head>
 
-<title>Three.js Canvas WebMExporter</title>
+<title>Three.js Raytracing WebMExporter</title>
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
@@ -16,16 +16,12 @@
 
 <video id="video" autoplay loop></video>
 
-<a id="download" download="canvas.webm">Download Video</a>
+<a id="download" download="raytracing.webm">Download Video</a>
 <a id="info" target="_blank" href="https://github.com/chuckfairy/THREE.WebMExporter">Three.js WebMExporter by Chuck Fairy</a>
-
-<div id="videoInfo">
-    <h2>Creating Video</h2>
-</div>
 
 <script src="lib/three.min.js"></script>
 <script src="lib/Projector.js"></script>
-<script src="lib/CanvasRenderer.js"></script>
+<script src="lib/RaytracingRenderer.js"></script>
 <script src="../WebMExporter.js"></script>
 
 <script>
@@ -40,12 +36,12 @@ var video = document.getElementById("video"),
     download = document.getElementById("download"),
     videoInfo = document.getElementById("videoInfo");
 
+var currentFrame = 1, numberOfFrames = 50;
 
 window.onload = function() {
     init();
     initWebM();
-};
-
+}
 
 function init() {
 
@@ -66,10 +62,10 @@ function init() {
     light.position.set(20, 50, 300);
     scene.add(light);
 
-    //Create renderer make sure preserveDrawingBuffer is set to true
-    renderer = new THREE.CanvasRenderer();
+    //Create raytrace renderer
+    renderer = new THREE.RaytracingRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
-
+    document.body.appendChild(renderer.domElement);
 }
 
 //WebM compile
@@ -91,23 +87,38 @@ function initWebM() {
 
     });
 
-    var numberOfFrames = 200;
+    //Add render event
+    renderer.addEventListener("renderfinish", function() {
+        exporter.addFrame(renderer.domElement);
+        renderFrames(currentFrame);
+    });
 
-    for(var i = 0; i < numberOfFrames; i++) {
+    renderFrames(currentFrame);
+
+}
+
+function renderFrames(i) {
+
+    console.log("Frame %d of %d", i, numberOfFrames);
+
+    if(i < numberOfFrames) {
 
         animate();
-
-        exporter.addRenderFrame();
+        renderer.render(scene, camera);
+        currentFrame++;
 
     }
 
-    output = exporter.compile();
-    var url = exporter.createObjectURL(output);
+    else {
 
-    video.src = url;
-    download.href = url;
-    download.style.display = "inline-block";
-    videoInfo.style.display = "none";
+        output = exporter.compile();
+        var url = exporter.createObjectURL(output);
+
+        video.src = url;
+        download.href = url;
+        download.style.display = "inline-block";
+
+    }
 
 }
 

@@ -8,52 +8,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-<style>
-
-html, body {
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-}
-
-#video {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    z-index: 1;
-}
-
-#download, #info {
-    background: rgb(200,200,200);
-    text-decoration: none;
-    padding: 5px;
-    font-size: 14px;
-    color: rgb(100, 0, 0);
-    position: absolute;
-    z-index: 3;
-}
-
-#download {
-    top: 5px;
-    right: 5px;
-    display: none;
-}
-
-#info {
-    top: 5px;
-    left: 5px;
-}
-
-#videoInfo {
-    width: 70%;
-    max-width: 30em;
-    margin: 30px auto;
-    background: rgb(200,200,200);
-    padding: 5px;
-    box-shadow: 5px 5px 0 0 rgb(0,0,0);
-}
-
-</style>
+<link rel="stylesheet" href="lib/WebMExporter.css">
 
 </head>
 
@@ -83,10 +38,10 @@ var video = document.getElementById("video"),
     download = document.getElementById("download"),
     videoInfo = document.getElementById("videoInfo");
 
-
-init();
-initWebM();
-//animate();
+window.onload = function() {
+    init();
+    initWebM();
+};
 
 function init() {
 
@@ -142,6 +97,7 @@ function initWebM() {
 
     }
 
+    //Create output url
     output = exporter.compile();
     var url = exporter.createObjectURL(output);
 

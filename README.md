@@ -4,7 +4,7 @@ Using toDataURL for the Three.js domElement, compile a frame array of Webp image
 ## How to use
 
 ```html
-
+<script src="WebMExporter.js"></script>
 <script>
 
 //For webgl use the preserveDrawingBuffer flag must be true
@@ -34,6 +34,7 @@ for(var i = 0; i < numberOfFrames; i++) {
 
 }
 
+//Create output compile blob
 output = exporter.compile();
 var url = exporter.createObjectURL(output);
 
@@ -46,6 +47,7 @@ exporter.addFrame(renderer.domElement);
 
 </script>
 ```
+
 ## Properties
 
 ### renderer
@@ -60,20 +62,43 @@ camera to use for render
 
 ## Methods
 
-### addRenderFrame
+### addRenderFrame( duration )
 Will render using scene and camera then add the frame
+Pass optional duration in milliseconds will default to fps
 
-### addFrame
-Add a frame from a canvas element
+### addFrame( canvasOrWebP, duration )
+Add a frame from a canvas element or WebP image
+Pass optional duration in milliseconds
 
-### compile
+### compile( )
 output a video WebM blob
 
-### createObjectURL
+### createObjectURL( blob )
 create a video src URL for playing and exporting video
+
+### setQuality( quality )
+Set quality from 1-100.
+Can also be set from quality property using int 0-1
+
+### setSpeed( speed )
+Set speed passing in int in milliseconds
 
 ## Live Demos
 
-In Action > http://chuckfairy.com/THREE.WebMExporter/examples/webgl.html
+### In Action
 
-Video > http://chuckfairy.com/THREE.WebMExporter/videos/webgl.webm
+* http://chuckfairy.com/THREE.WebMExporter/examples/webgl.html
+* http://chuckfairy.com/THREE.WebMExporter/examples/canvas.html
+* http://chuckfairy.com/THREE.WebMExporter/examples/raytracing.html
+
+### Videos
+
+* http://chuckfairy.com/THREE.WebMExporter/videos/webgl.webm
+* http://chuckfairy.com/THREE.WebMExporter/videos/canvas.webm
+* http://chuckfairy.com/THREE.WebMExporter/videos/raytracing.webm
+
+## What's next?
+
+* Vorbis audio adding
+* HTML page frames
+* You tell me, leave an issue or request
