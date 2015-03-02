@@ -94,49 +94,15 @@ THREE.WebMExporter.prototype = {
 
     },
 
-    //Check frames and output info object
-
-    checkFrames: function( frames ) {
-
-        var width = frames[0].width,
-            height = frames[0].height,
-            duration = frames[0].duration,
-            frameLength = frames.length;
-
-        for(var i = 1; i < frameLength; i++) {
-
-            var frame = frames[i];
-
-            if(frame.width != width) {
-                throw "Frame " + (i + 1) + " has a different width";
-            }
-
-            if(frame.height != height) {
-                throw "Frame " + (i + 1) + " has a different height";
-            }
-
-            if(frame.duration < 0 || frame.duration > 0x7fff) {
-                throw "Frame " + (i + 1) + " has a weird duration (must be between 0 and 32767)";
-            }
-
-            duration += frame.duration;
-        }
-
-        return {
-            duration: duration,
-            width: width,
-            height: height
-        };
-    },
-
 
     //Compile to WebM video
 
-    compile: function(outputAsArray) {
+    compile: function() {
 
         var t = this;
         var frameLength = t.frames.length;
         var webp = [];
+        var width, height, duration;
 
         for( var i = 0; i < frameLength; i++ ) {
 
@@ -145,9 +111,35 @@ THREE.WebMExporter.prototype = {
             output.duration = frame.duration;
             webp[i] = output;
 
+            if( i === 0 ) {
+                width = output.width;
+                height = output.height;
+                duration = output.duration;
+            }
+
+            if( output.width !== width ) {
+                throw "Frame " + (i + 1) + " has a different width";
+            }
+
+            if( output.height !== height ) {
+                throw "Frame " + (i + 1) + " has a different height";
+            }
+
+            if( output.duration < 0 || frame.duration > 0x7fff ) {
+                throw "Frame " + (i + 1) + " has a weird duration (must be between 0 and 32767)";
+            }
+
+            duration += output.duration;
+
         }
 
-        return this.toWebM(webp, outputAsArray);
+        var info = {
+            duration: duration,
+            width: width,
+            height: height
+        };
+
+        return this.toWebM(webp, info);
 
     },
 
@@ -156,7 +148,7 @@ THREE.WebMExporter.prototype = {
 
     createObjectURL: function(blob) {
 
-        var u = window.URL || window.webkitURL;
+        var u = window.URL || window.webkitURL || window.mozURL;
 
         return u.createObjectURL(blob);
 
@@ -444,7 +436,7 @@ THREE.WebMExporter.prototype = {
 
     //Generate EBML for webM
 
-    generateEBML: function(json, outputAsArray){
+    generateEBML: function(json){
 
         var ebml = [ ];
         var jl = json.length;
@@ -457,7 +449,7 @@ THREE.WebMExporter.prototype = {
         for( var i = 0; i < jl; i++ ) {
 
             var data = json[i].data;
-            if(typeof data == 'object') data = generateEBML(data, outputAsArray);
+            if(typeof data == 'object') data = generateEBML(data);
             if(typeof data == 'number') data = bitsToBuffer(data.toString(2));
             if(typeof data == 'string') data = strToBuffer(data);
 
@@ -475,15 +467,8 @@ THREE.WebMExporter.prototype = {
 
         }
 
-        //output as blob or byteArray
-        if(outputAsArray){
-            //convert ebml to an array
-            var buffer = this.toFlatArray(ebml)
-            return new Uint8Array(buffer);
+        return new Blob(ebml, {type: "video/webm"});
 
-        }
-
-        else { return new Blob(ebml, {type: "video/webm"}); }
     },
 
 
@@ -536,10 +521,9 @@ THREE.WebMExporter.prototype = {
 
     //Change frames to WebMBuffer
 
-    toWebM: function ( frames, outputAsArray ) {
+    toWebM: function ( frames, info ) {
 
         var t = this;
-        var info = t.checkFrames(frames);
         var makeSimpleBlock = t.makeSimpleBlock.bind(t);
 
         //max duration by cluster in milliseconds
@@ -550,8 +534,9 @@ THREE.WebMExporter.prototype = {
 
         //Generate clusters (max duration)
         var frameNumber = 0;
+        var frameslength = frames.length;
         var clusterTimecode = 0;
-        while(frameNumber < frames.length){
+        while(frameNumber < frameslength) {
 
             var clusterFrames = [];
             var clusterDuration = 0;
@@ -598,7 +583,7 @@ THREE.WebMExporter.prototype = {
 
         }
 
-        return this.generateEBML(EBML, outputAsArray);
+        return this.generateEBML(EBML);
 
     }
 

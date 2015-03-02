@@ -9,6 +9,8 @@ THREE.RaytracingRenderer = function ( parameters ) {
 
 	parameters = parameters || {};
 
+	var scope = this;
+
 	var canvas = document.createElement( 'canvas' );
 	var context = canvas.getContext( '2d', {
 		alpha: parameters.alpha === true
@@ -401,8 +403,6 @@ THREE.RaytracingRenderer = function ( parameters ) {
 
 	}() );
 
-	var dispatch = this.dispatchEvent.bind(this);
-
 	var renderBlock = ( function () {
 
 		var blockSize = 64;
@@ -460,9 +460,7 @@ THREE.RaytracingRenderer = function ( parameters ) {
 
 				if ( blockY >= canvasHeight ) {
 
-					dispatch({
-						type: "renderfinish"
-					});
+					scope.dispatchEvent( { type: "complete" } );
 
 					return;
 

@@ -1,7 +1,7 @@
 # THREE.WebMExporter
 Using toDataURL for the Three.js domElement, compile a frame array of Webp images into a WebM video for use in [three.js](http://threejs.org). It is based on [Whammy](https://github.com/antimatter15/whammy). Thank you mrdoob, AlteredQualia, and all those who made this happen.
 
-NOTE: the current raytrace renderer in the example is edited very slightly to add an event listener when the render is finished.
+NOTE: the current raytracing renderer in the example is edited very slightly to add an event listener when the render is finished.
 
 ## How to use
 
@@ -83,7 +83,7 @@ Set quality from 1-100.
 Can also be set from quality property using int 0-1
 
 ### setSpeed( speed )
-Set speed passing in int in milliseconds
+Set default speed passing in int in milliseconds
 
 ## Live Demos
 
